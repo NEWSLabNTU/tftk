@@ -6,6 +6,58 @@ use nalgebra as na;
 use noisy_float::types::{r64, R64};
 use num::{NumCast, ToPrimitive};
 
+impl From<RotationMatrix> for Rotation {
+    fn from(v: RotationMatrix) -> Self {
+        Self::RotationMatrix(v)
+    }
+}
+
+impl From<AxisAngle> for Rotation {
+    fn from(v: AxisAngle) -> Self {
+        Self::AxisAngle(v)
+    }
+}
+
+impl From<Quaternion> for Rotation {
+    fn from(v: Quaternion) -> Self {
+        Self::Quaternion(v)
+    }
+}
+
+impl From<Euler> for Rotation {
+    fn from(v: Euler) -> Self {
+        Self::Euler(v)
+    }
+}
+
+impl From<Rotation> for Euler {
+    fn from(rot: Rotation) -> Self {
+        let quat: na::UnitQuaternion<f64> = rot.into();
+        quat.into()
+    }
+}
+
+impl From<Rotation> for AxisAngle {
+    fn from(rot: Rotation) -> Self {
+        let quat: na::UnitQuaternion<f64> = rot.into();
+        quat.into()
+    }
+}
+
+impl From<Rotation> for RotationMatrix {
+    fn from(rot: Rotation) -> Self {
+        let quat: na::UnitQuaternion<f64> = rot.into();
+        quat.into()
+    }
+}
+
+impl From<Rotation> for Quaternion {
+    fn from(rot: Rotation) -> Self {
+        let quat: na::UnitQuaternion<f64> = rot.into();
+        quat.into()
+    }
+}
+
 impl<T> From<Transform> for na::Isometry3<T>
 where
     T: na::RealField + NumCast,

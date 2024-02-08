@@ -13,10 +13,48 @@ pub enum Rotation {
     RotationMatrix(RotationMatrix),
 }
 
+impl Rotation {
+    pub fn into_degrees(self) -> Self {
+        match self {
+            Rotation::Euler(rot) => rot.into_degrees().into(),
+            Rotation::Quaternion(rot) => rot.into(),
+            Rotation::AxisAngle(rot) => rot.into_degrees().into(),
+            Rotation::RotationMatrix(rot) => rot.into(),
+        }
+    }
+
+    pub fn into_radians(self) -> Self {
+        match self {
+            Rotation::Euler(rot) => rot.into_radians().into(),
+            Rotation::Quaternion(rot) => rot.into(),
+            Rotation::AxisAngle(rot) => rot.into_radians().into(),
+            Rotation::RotationMatrix(rot) => rot.into(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Euler {
     pub order: EulerAxisOrder,
     pub angles: Vec<Angle>,
+}
+
+impl Euler {
+    pub fn into_degrees(self) -> Self {
+        let Self { order, angles } = self;
+        Self {
+            order,
+            angles: angles.into_iter().map(|ang| ang.to_degrees()).collect(),
+        }
+    }
+
+    pub fn into_radians(self) -> Self {
+        let Self { order, angles } = self;
+        Self {
+            order,
+            angles: angles.into_iter().map(|ang| ang.to_radians()).collect(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,6 +66,24 @@ pub struct Quaternion {
 pub struct AxisAngle {
     pub axis: [Length; 3],
     pub angle: Angle,
+}
+
+impl AxisAngle {
+    pub fn into_degrees(self) -> Self {
+        let Self { axis, angle } = self;
+        Self {
+            axis,
+            angle: angle.to_degrees(),
+        }
+    }
+
+    pub fn into_radians(self) -> Self {
+        let Self { axis, angle } = self;
+        Self {
+            axis,
+            angle: angle.to_radians(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
