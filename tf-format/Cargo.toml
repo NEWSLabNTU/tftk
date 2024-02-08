@@ -1,0 +1,18 @@
+[package]
+name = "tf-format"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.79"
+nalgebra = "0.32.3"
+noisy_float = { version = "0.2.0", features = ["serde"] }
+num = "0.4.1"
+serde = { version = "1.0.196", features = ["derive"] }
+
+[dev-dependencies]
+anyhow = { version = "1.0.79", features = ["backtrace"] }
+serde_json = "1.0.113"
+approx = "0.5.1"
