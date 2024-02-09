@@ -1,19 +1,19 @@
 mod cli;
 
+use anyhow::{bail, Result};
+use clap::Parser;
+use cli::{AngleFormat, Cli, Convert, FileFormat, KeepTranslation, RotationFormat};
+use noisy_float::types::R64;
+use num::Zero;
 use std::{
     ffi::OsStr,
     fs::File,
     io::{self, prelude::*, BufReader, BufWriter},
     path::Path,
 };
-
-use anyhow::{bail, Result};
-use clap::Parser;
-use cli::{AngleFormat, Cli, Convert, FileFormat, KeepTranslation, RotationFormat};
-use noisy_float::types::R64;
-use num::Zero;
 use tf_format::{
-    AxisAngle, Euler, MaybeTransform, Quaternion, Rotation, RotationMatrix, Transform, Translation,
+    AxisAngle, Euler, MaybeTransform, Quaternion, Rodrigues, Rotation, RotationMatrix, Transform,
+    Translation,
 };
 
 fn main() -> Result<()> {
@@ -65,6 +65,7 @@ pub fn convert(opts: Convert) -> Result<()> {
         RotationFormat::Euler => Euler::from(rot).into(),
         RotationFormat::Mat => RotationMatrix::from(rot).into(),
         RotationFormat::AxisAngle => AxisAngle::from(rot).into(),
+        RotationFormat::Rodrigues => Rodrigues::from(rot).into(),
     };
     let rot = match angle_format {
         AngleFormat::Deg => rot.into_degrees(),

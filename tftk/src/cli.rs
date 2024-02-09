@@ -53,6 +53,7 @@ pub enum RotationFormat {
     Euler,
     Mat,
     AxisAngle,
+    Rodrigues,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
