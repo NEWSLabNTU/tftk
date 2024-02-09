@@ -12,8 +12,9 @@ use clap::Parser;
 use cli::{AngleFormat, Cli, Convert, FileFormat, KeepTranslation, RotationFormat};
 use noisy_float::types::R64;
 use num::Zero;
-use serde::{Deserialize, Serialize};
-use tf_format::{AxisAngle, Euler, Quaternion, Rotation, RotationMatrix, Transform, Translation};
+use tf_format::{
+    AxisAngle, Euler, MaybeTransform, Quaternion, Rotation, RotationMatrix, Transform, Translation,
+};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -36,14 +37,14 @@ pub fn convert(opts: Convert) -> Result<()> {
         output,
     } = opts;
 
-    let Some(input_format) = guess_format(&input).or(input_format) else {
+    let Some(input_format) = input_format.or_else(|| guess_format(&input)) else {
         bail!("Please specify the input file format using --input-format");
     };
-    let Some(output_format) = guess_format(&output).or(output_format) else {
+    let Some(output_format) = output_format.or_else(|| guess_format(&output)) else {
         bail!("Please specify the input file format using --output-format");
     };
 
-    let input_tf: GuessedTrasnform = {
+    let input_tf: MaybeTransform = {
         let mut reader = create_reader(&input)?;
 
         match input_format {
@@ -57,10 +58,7 @@ pub fn convert(opts: Convert) -> Result<()> {
         }
     };
 
-    let (rot, trans) = match input_tf {
-        GuessedTrasnform::Transform(Transform { r, t }) => (r, Some(t)),
-        GuessedTrasnform::Rotation(r) => (r, None),
-    };
+    let MaybeTransform { t: trans, r: rot } = input_tf;
 
     let rot: Rotation = match rotation_format {
         RotationFormat::Quat => Quaternion::from(rot).into(),
@@ -82,7 +80,7 @@ pub fn convert(opts: Convert) -> Result<()> {
         KeepTranslation::Discard => None,
     };
 
-    let output_tf: GuessedTrasnform = match trans {
+    let output_tf: MaybeTransform = match trans {
         Some(trans) => Transform { t: trans, r: rot }.into(),
         None => rot.into(),
     };
@@ -101,25 +99,6 @@ pub fn convert(opts: Convert) -> Result<()> {
     }
 
     Ok(())
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-enum GuessedTrasnform {
-    Transform(Transform),
-    Rotation(Rotation),
-}
-
-impl From<Rotation> for GuessedTrasnform {
-    fn from(v: Rotation) -> Self {
-        Self::Rotation(v)
-    }
-}
-
-impl From<Transform> for GuessedTrasnform {
-    fn from(v: Transform) -> Self {
-        Self::Transform(v)
-    }
 }
 
 fn create_reader(spec: &OsStr) -> io::Result<BufReader<Box<dyn Read + Send + Sync>>> {
