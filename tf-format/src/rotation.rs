@@ -5,7 +5,7 @@ use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
+#[serde(tag = "format", rename_all = "kebab-case")]
 pub enum Rotation {
     Euler(Euler),
     Quaternion(Quaternion),

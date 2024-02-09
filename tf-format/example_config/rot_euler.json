@@ -1,5 +1,5 @@
 {
-    "type": "euler",
+    "format": "euler",
     "order": "rpy",
     "angles": ["10d", "-5d", "3d"]
 }

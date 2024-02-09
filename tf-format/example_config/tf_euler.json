@@ -1,6 +1,6 @@
 {
     "r": {
-        "type": "euler",
+        "format": "euler",
         "order": "ypr",
         "angles": ["-3.14r", "27d", "-30rad"]
     },
