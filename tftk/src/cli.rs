@@ -25,6 +25,9 @@ pub struct Convert {
     #[clap(short = 'k', long, default_value = "auto")]
     pub keep_translation: KeepTranslation,
 
+    #[clap(long)]
+    pub pretty: bool,
+
     #[clap(short = 'i', long, default_value = "-")]
     pub input: OsString,
 
@@ -48,6 +51,9 @@ pub struct Compose {
 
     #[clap(short = 'o', long, default_value = "-")]
     pub output: OsString,
+
+    #[clap(long)]
+    pub pretty: bool,
 
     pub input_files: Vec<PathBuf>,
 }

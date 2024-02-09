@@ -16,6 +16,7 @@ pub fn convert(opts: Convert) -> Result<()> {
         rotation_format,
         angle_format,
         keep_translation,
+        pretty,
         input,
         output,
     } = opts;
@@ -44,7 +45,7 @@ pub fn convert(opts: Convert) -> Result<()> {
 
     {
         let mut writer = create_writer(&output)?;
-        write_tf_to_writer(&output_tf, &mut writer, output_format)?;
+        write_tf_to_writer(&output_tf, &mut writer, output_format, pretty)?;
         writer.flush()?;
     }
 

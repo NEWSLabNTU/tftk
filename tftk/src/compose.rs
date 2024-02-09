@@ -16,6 +16,7 @@ pub fn compose(cli: Compose) -> Result<()> {
         rotation_format,
         angle_format,
         keep_translation,
+        pretty,
         output,
         input_files,
     } = cli;
@@ -43,7 +44,7 @@ pub fn compose(cli: Compose) -> Result<()> {
     let output_tf = MaybeTransform { r: rot, t: trans };
 
     let mut writer = create_writer(&output)?;
-    write_tf_to_writer(&output_tf, &mut writer, output_format)?;
+    write_tf_to_writer(&output_tf, &mut writer, output_format, pretty)?;
     writer.flush()?;
 
     Ok(())

@@ -72,14 +72,16 @@ pub fn write_tf_to_writer(
     tf: &MaybeTransform,
     mut writer: impl Write,
     format: FileFormat,
+    pretty: bool,
 ) -> Result<()> {
-    match format {
-        FileFormat::Json => serde_json::to_writer(writer, tf)?,
-        FileFormat::Json5 => {
+    match (format, pretty) {
+        (FileFormat::Json, true) => serde_json::to_writer_pretty(writer, tf)?,
+        (FileFormat::Json, false) => serde_json::to_writer(writer, tf)?,
+        (FileFormat::Json5, _) => {
             let text = json5::to_string(tf)?;
             write!(writer, "{text}")?;
         }
-        FileFormat::Yaml => serde_yaml::to_writer(writer, tf)?,
+        (FileFormat::Yaml, _) => serde_yaml::to_writer(writer, tf)?,
     };
     Ok(())
 }
