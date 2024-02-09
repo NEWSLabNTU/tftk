@@ -1,10 +1,10 @@
 use crate::{
-    rotation::{Quaternion, Rotation},
+    rotation::{Quaternion, Rodrigues, Rotation},
     Angle, AxisAngle, Euler, EulerAxis, EulerAxisOrder, RotationMatrix, Transform, Translation,
 };
 use nalgebra as na;
 use noisy_float::types::{r64, R64};
-use num::{NumCast, ToPrimitive};
+use num::{NumCast, ToPrimitive, Zero};
 
 impl From<RotationMatrix> for Rotation {
     fn from(v: RotationMatrix) -> Self {
@@ -27,6 +27,12 @@ impl From<Quaternion> for Rotation {
 impl From<Euler> for Rotation {
     fn from(v: Euler) -> Self {
         Self::Euler(v)
+    }
+}
+
+impl From<Rodrigues> for Rotation {
+    fn from(v: Rodrigues) -> Self {
+        Self::Rodrigues(v)
     }
 }
 
@@ -58,6 +64,13 @@ impl From<Rotation> for Quaternion {
     }
 }
 
+impl From<Rotation> for Rodrigues {
+    fn from(rot: Rotation) -> Self {
+        let quat: na::UnitQuaternion<f64> = rot.into();
+        quat.into()
+    }
+}
+
 impl<T> From<Transform> for na::Isometry3<T>
 where
     T: na::RealField + NumCast,
@@ -80,7 +93,10 @@ where
     }
 }
 
-impl<T: na::RealField + NumCast> From<na::Isometry3<T>> for Transform {
+impl<T> From<na::Isometry3<T>> for Transform
+where
+    T: na::RealField + NumCast,
+{
     fn from(iso: na::Isometry3<T>) -> Self {
         use nalgebra::base::coordinates::XYZ;
 
@@ -113,6 +129,7 @@ where
             Rotation::Quaternion(rot) => rot.into(),
             Rotation::AxisAngle(rot) => rot.into(),
             Rotation::RotationMatrix(rot) => rot.into(),
+            Rotation::Rodrigues(rot) => rot.into(),
         }
     }
 }
@@ -316,6 +333,43 @@ where
                 [cast!(m21), cast!(m22), cast!(m23)],
                 [cast!(m31), cast!(m32), cast!(m33)],
             ],
+        }
+    }
+}
+
+impl<T> From<Rodrigues> for na::UnitQuaternion<T>
+where
+    T: na::RealField + NumCast,
+{
+    fn from(rod: Rodrigues) -> Self {
+        let [r1, r2, r3] = rod.params;
+        let axis = na::Vector3::new(r1.raw(), r2.raw(), r3.raw());
+        let Some((axis, angle)) = na::Unit::try_new_and_get(axis, 1e-8) else {
+            return na::UnitQuaternion::identity();
+        };
+        na::UnitQuaternion::from_axis_angle(&axis, angle).cast()
+    }
+}
+
+impl<T> From<na::UnitQuaternion<T>> for Rodrigues
+where
+    T: na::RealField + NumCast,
+{
+    fn from(quat: na::UnitQuaternion<T>) -> Self {
+        macro_rules! cast {
+            ($val:expr) => {
+                <R64 as NumCast>::from($val).unwrap()
+            };
+        }
+
+        let Some((axis, angle)) = quat.axis_angle() else {
+            let z = R64::zero();
+            return Rodrigues { params: [z, z, z] };
+        };
+        let params = axis.into_inner() / angle;
+        let [r1, r2, r3] = params.into();
+        Rodrigues {
+            params: [cast!(r1), cast!(r2), cast!(r3)],
         }
     }
 }

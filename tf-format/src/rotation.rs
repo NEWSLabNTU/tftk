@@ -11,6 +11,7 @@ pub enum Rotation {
     Quaternion(Quaternion),
     AxisAngle(AxisAngle),
     RotationMatrix(RotationMatrix),
+    Rodrigues(Rodrigues),
 }
 
 impl Rotation {
@@ -20,6 +21,7 @@ impl Rotation {
             Rotation::Quaternion(rot) => rot.into(),
             Rotation::AxisAngle(rot) => rot.into_degrees().into(),
             Rotation::RotationMatrix(rot) => rot.into(),
+            Rotation::Rodrigues(rot) => rot.into(),
         }
     }
 
@@ -29,6 +31,7 @@ impl Rotation {
             Rotation::Quaternion(rot) => rot.into(),
             Rotation::AxisAngle(rot) => rot.into_radians().into(),
             Rotation::RotationMatrix(rot) => rot.into(),
+            Rotation::Rodrigues(rot) => rot.into(),
         }
     }
 }
@@ -89,6 +92,11 @@ impl AxisAngle {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RotationMatrix {
     pub matrix: [[R64; 3]; 3],
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Rodrigues {
+    pub params: [R64; 3],
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
