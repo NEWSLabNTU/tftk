@@ -1,10 +1,11 @@
-use std::ffi::OsString;
+use std::{ffi::OsString, path::PathBuf};
 
 use clap::{Parser, ValueEnum};
 
 #[derive(Debug, Clone, Parser)]
 pub enum Cli {
     Convert(Convert),
+    Compose(Compose),
 }
 
 #[derive(Debug, Clone, Parser)]
@@ -29,6 +30,26 @@ pub struct Convert {
 
     #[clap(short = 'o', long, default_value = "-")]
     pub output: OsString,
+}
+
+#[derive(Debug, Clone, Parser)]
+pub struct Compose {
+    #[clap(short = 't', long)]
+    pub output_format: Option<FileFormat>,
+
+    #[clap(short = 'r', long)]
+    pub rotation_format: RotationFormat,
+
+    #[clap(short = 'a', long, default_value = "deg")]
+    pub angle_format: AngleFormat,
+
+    #[clap(short = 'k', long, default_value = "auto")]
+    pub keep_translation: KeepTranslation,
+
+    #[clap(short = 'o', long, default_value = "-")]
+    pub output: OsString,
+
+    pub input_files: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
