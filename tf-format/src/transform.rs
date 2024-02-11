@@ -199,3 +199,82 @@ where
         Self([cast!(x), cast!(y), cast!(z)])
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Transform;
+    use super::Translation;
+    use crate::unit::AngleUnit;
+    use crate::{Angle, Euler, EulerAxis, EulerAxisOrder, Rotation};
+    use approx::assert_abs_diff_eq;
+    use noisy_float::types::r64;
+
+    #[test]
+    fn transform_convert() {
+        let trans = Transform {
+            r: Euler {
+                order: EulerAxisOrder(vec![EulerAxis::Roll]),
+                angles: vec![Angle {
+                    unit: AngleUnit::Degree,
+                    value: r64(10.0),
+                }],
+            }
+            .into(),
+            t: Translation([r64(-10.0), r64(20.0), r64(30.0)]),
+        };
+
+        let trans = trans.into_radians().into_degrees();
+        let trans = trans.into_axis_angle_format();
+
+        let trans = trans.into_radians().into_degrees();
+        let trans = trans.into_quaternion_format();
+
+        let trans = trans.into_radians().into_degrees();
+        let trans = trans.into_rotation_matrix_format();
+
+        let trans = trans.into_radians().into_degrees();
+        let trans = trans.into_rodrigues_format();
+
+        let trans = trans.into_radians().into_degrees();
+        let trans = trans.into_euler_format();
+
+        let trans = trans.into_radians().into_degrees();
+
+        let Transform {
+            r: rot,
+            t: Translation([x, y, z]),
+        } = trans;
+
+        assert_abs_diff_eq!(x.raw(), -10.0, epsilon = 1e-6);
+        assert_abs_diff_eq!(y.raw(), 20.0, epsilon = 1e-6);
+        assert_abs_diff_eq!(z.raw(), 30.0, epsilon = 1e-6);
+
+        let Rotation::Euler(Euler {
+            order: EulerAxisOrder(order),
+            angles,
+        }) = rot
+        else {
+            panic!("expect Euler variant");
+        };
+
+        assert_eq!(
+            order,
+            vec![EulerAxis::Roll, EulerAxis::Pitch, EulerAxis::Yaw,]
+        );
+
+        let [roll, pitch, yaw] = *angles else {
+            panic!("expect three angles");
+        };
+
+        assert_abs_diff_eq!(
+            roll,
+            Angle {
+                unit: AngleUnit::Degree,
+                value: r64(10.0)
+            },
+            epsilon = 1e-5
+        );
+        assert_abs_diff_eq!(pitch, Angle::zero(), epsilon = 1e-5);
+        assert_abs_diff_eq!(yaw, Angle::zero(), epsilon = 1e-5);
+    }
+}
