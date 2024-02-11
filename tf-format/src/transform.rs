@@ -10,6 +10,72 @@ pub struct Transform {
     pub t: Translation,
 }
 
+impl Transform {
+    pub fn normalize_rotation(&self) -> Self {
+        let Self { r, t } = self;
+        Self {
+            r: r.normalize(),
+            t: t.clone(),
+        }
+    }
+
+    pub fn into_degrees(self) -> Self {
+        let Self { t, r } = self;
+        Self {
+            t,
+            r: r.into_degrees(),
+        }
+    }
+
+    pub fn into_radians(self) -> Self {
+        let Self { t, r } = self;
+        Self {
+            t,
+            r: r.into_radians(),
+        }
+    }
+
+    pub fn into_euler_format(self) -> Self {
+        let Self { t, r } = self;
+        Self {
+            t,
+            r: r.into_euler_format(),
+        }
+    }
+
+    pub fn into_axis_angle_format(self) -> Self {
+        let Self { t, r } = self;
+        Self {
+            t,
+            r: r.into_axis_angle_format(),
+        }
+    }
+
+    pub fn into_quaternion_format(self) -> Self {
+        let Self { t, r } = self;
+        Self {
+            t,
+            r: r.into_quaternion_format(),
+        }
+    }
+
+    pub fn into_rodrigues_format(self) -> Self {
+        let Self { t, r } = self;
+        Self {
+            t,
+            r: r.into_rodrigues_format(),
+        }
+    }
+
+    pub fn into_rotation_matrix_format(self) -> Self {
+        let Self { t, r } = self;
+        Self {
+            t,
+            r: r.into_rotation_matrix_format(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(from = "SerializedTransform", into = "SerializedTransform")]
 pub struct MaybeTransform {
