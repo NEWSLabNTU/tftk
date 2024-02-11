@@ -1,8 +1,9 @@
 use anyhow::bail;
+use approx::AbsDiffEq;
 use noisy_float::types::{r64, R64};
-use num::Float;
+use num::{Float, Zero};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
-use std::{cmp::Ordering, str::FromStr};
+use std::{cmp::Ordering, f64::consts::PI, str::FromStr};
 
 pub type Length = R64;
 
@@ -19,10 +20,24 @@ pub struct Angle {
 }
 
 impl Angle {
+    pub fn normalize(&self) -> Self {
+        let Self { unit, value } = *self;
+
+        let value = match unit {
+            AngleUnit::Radian => value.raw().rem_euclid(PI * 2.0),
+            AngleUnit::Degree => value.raw().rem_euclid(360.0),
+        };
+
+        Self {
+            unit,
+            value: r64(value),
+        }
+    }
+
     pub fn zero() -> Self {
         Self {
             unit: AngleUnit::Radian,
-            value: r64(0.0),
+            value: R64::zero(),
         }
     }
 
@@ -166,6 +181,20 @@ impl PartialOrd for Angle {
 impl Ord for Angle {
     fn cmp(&self, other: &Self) -> Ordering {
         angle_ord(self, other)
+    }
+}
+
+impl AbsDiffEq for Angle {
+    type Epsilon = f64;
+
+    fn default_epsilon() -> Self::Epsilon {
+        f64::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        self.as_radians_value()
+            .raw()
+            .abs_diff_eq(&other.as_radians_value().raw(), epsilon)
     }
 }
 
