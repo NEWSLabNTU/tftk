@@ -15,7 +15,7 @@ impl Transform {
         let Self { r, t } = self;
         Self {
             r: r.normalize(),
-            t: t.clone(),
+            t: *t,
         }
     }
 
