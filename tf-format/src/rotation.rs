@@ -225,3 +225,68 @@ impl EulerAxis {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Angle, Euler, EulerAxis, EulerAxisOrder, Rotation};
+    use crate::unit::AngleUnit;
+    use approx::assert_abs_diff_eq;
+    use noisy_float::types::r64;
+
+    #[test]
+    fn rotation_convert() {
+        let rot: Rotation = Euler {
+            order: EulerAxisOrder(vec![EulerAxis::Roll]),
+            angles: vec![Angle {
+                unit: AngleUnit::Degree,
+                value: r64(10.0),
+            }],
+        }
+        .into();
+
+        let rot = rot.into_radians().into_degrees();
+        let rot = rot.into_axis_angle_format();
+
+        let rot = rot.into_radians().into_degrees();
+        let rot = rot.into_quaternion_format();
+
+        let rot = rot.into_radians().into_degrees();
+        let rot = rot.into_rotation_matrix_format();
+
+        let rot = rot.into_radians().into_degrees();
+        let rot = rot.into_rodrigues_format();
+
+        let rot = rot.into_radians().into_degrees();
+        let rot = rot.into_euler_format();
+
+        let rot = rot.into_radians().into_degrees();
+
+        let Rotation::Euler(Euler {
+            order: EulerAxisOrder(order),
+            angles,
+        }) = rot
+        else {
+            panic!("expect Euler variant");
+        };
+
+        assert_eq!(
+            order,
+            vec![EulerAxis::Roll, EulerAxis::Pitch, EulerAxis::Yaw,]
+        );
+
+        let [roll, pitch, yaw] = *angles else {
+            panic!("expect three angles");
+        };
+
+        assert_abs_diff_eq!(
+            roll,
+            Angle {
+                unit: AngleUnit::Degree,
+                value: r64(10.0)
+            },
+            epsilon = 1e-5
+        );
+        assert_abs_diff_eq!(pitch, Angle::zero(), epsilon = 1e-5);
+        assert_abs_diff_eq!(yaw, Angle::zero(), epsilon = 1e-5);
+    }
+}

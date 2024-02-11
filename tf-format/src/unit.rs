@@ -205,3 +205,101 @@ fn angle_eq(lhs: &Angle, rhs: &Angle) -> bool {
 fn angle_ord(lhs: &Angle, rhs: &Angle) -> Ordering {
     lhs.as_radians_value().cmp(&rhs.as_radians_value())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Angle, AngleUnit};
+    use noisy_float::types::r64;
+    use std::f64::consts::FRAC_PI_2;
+
+    #[test]
+    fn parse_angle() {
+        {
+            let angle: Angle = "74.3d".parse().unwrap();
+            assert_eq!(
+                angle,
+                Angle {
+                    unit: AngleUnit::Degree,
+                    value: r64(74.3)
+                }
+            );
+        }
+
+        {
+            let angle: Angle = "-47.2deg".parse().unwrap();
+            assert_eq!(
+                angle,
+                Angle {
+                    unit: AngleUnit::Degree,
+                    value: r64(-47.2)
+                }
+            );
+        }
+
+        {
+            let angle: Angle = "97.0r".parse().unwrap();
+            assert_eq!(
+                angle,
+                Angle {
+                    unit: AngleUnit::Radian,
+                    value: r64(97.0)
+                }
+            );
+        }
+
+        {
+            let angle: Angle = "-61.4rad".parse().unwrap();
+            assert_eq!(
+                angle,
+                Angle {
+                    unit: AngleUnit::Radian,
+                    value: r64(-61.4)
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn angle_unit() {
+        let angle = Angle {
+            unit: AngleUnit::Degree,
+            value: r64(90.0),
+        };
+
+        angle.to_degrees();
+        assert_eq!(
+            angle,
+            Angle {
+                unit: AngleUnit::Degree,
+                value: r64(90.0)
+            }
+        );
+
+        angle.to_radians();
+        assert_eq!(
+            angle,
+            Angle {
+                unit: AngleUnit::Radian,
+                value: r64(FRAC_PI_2)
+            }
+        );
+
+        angle.to_radians();
+        assert_eq!(
+            angle,
+            Angle {
+                unit: AngleUnit::Radian,
+                value: r64(FRAC_PI_2)
+            }
+        );
+
+        angle.to_degrees();
+        assert_eq!(
+            angle,
+            Angle {
+                unit: AngleUnit::Degree,
+                value: r64(90.0)
+            }
+        );
+    }
+}
