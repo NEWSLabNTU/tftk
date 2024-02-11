@@ -2,7 +2,8 @@
 
 **tftk** is a tiny toolkit to process rigid transformation in various
 formats. It provides an easy-to-install command line tool, and Rust
-and Python libraries for programming. It supports the file formats:
+and Python libraries for programming. It supports the following file
+formats:
 
 - File formats: JSON, JSON5 and YAML.
 - Rotation notations: quaternion, Euler, axis-angle, rotation matrix
@@ -154,4 +155,4 @@ translation, respectively written in "r" and "t" fields.
 }
 ```
 
-More examples can be found at [directory](tf-format/example_config).
+More examples can be found in the example [directory](tf-format/example_config).
