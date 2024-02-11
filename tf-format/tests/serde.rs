@@ -6,7 +6,7 @@ use serde::Deserialize;
 use std::{fs::File, io::BufReader, path::Path};
 use tf_format::{
     AxisAngle, Euler, EulerAxis, EulerAxisOrder, Quaternion, Rotation, RotationMatrix, Transform,
-    Translation,
+    TransformSet, Translation,
 };
 
 const CONFIG_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/example_config");

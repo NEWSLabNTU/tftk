@@ -1,6 +1,7 @@
 mod conv_impl;
 mod rotation;
 mod transform;
+mod transform_set;
 mod unit;
 
 pub use crate::{
@@ -9,5 +10,6 @@ pub use crate::{
         RotationMatrix,
     },
     transform::{MaybeTransform, Transform, Translation},
+    transform_set::{CoordTransform, TransformSet},
 };
 pub use unit::{Angle, Length};

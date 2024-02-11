@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.79"
 approx = "0.5.1"
+indexmap = "2.2.2"
+itertools = "0.12.1"
 nalgebra = "0.32.3"
 noisy_float = { version = "0.2.0", features = ["serde"] }
 num = "0.4.1"

@@ -1,0 +1,38 @@
+[
+    {
+        "src": "map",
+        "dst": "car",
+        "tf": {
+            "t": [100.0, -70.0, 255.0],
+            "r": {
+                "format": "euler",
+                "order": "rpy",
+                "angles": ["0d", "10d", "20d"]
+            }
+        }
+    },
+    {
+        "src": "car",
+        "dst": "lidar1",
+        "tf": {
+            "t": [10.0, 0.0, 3.0],
+            "r": {
+                "format": "axis-angle",
+                "axis": [0.0, 0.0, 1.0],
+                "angle": "30d"
+            }
+        }
+    },
+    {
+        "src": "car",
+        "dst": "lidar2",
+        "tf": {
+            "t": [-10.0, 0.0, 3.0],
+            "r": {
+                "format": "axis-angle",
+                "axis": [0.0, 0.0, 1.0],
+                "angle": "-30d"
+            }
+        }
+    }
+]
