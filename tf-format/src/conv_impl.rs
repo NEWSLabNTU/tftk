@@ -366,7 +366,7 @@ where
             let z = R64::zero();
             return Rodrigues { params: [z, z, z] };
         };
-        let params = axis.into_inner() / angle;
+        let params = axis.into_inner() * angle;
         let [r1, r2, r3] = params.into();
         Rodrigues {
             params: [cast!(r1), cast!(r2), cast!(r3)],
