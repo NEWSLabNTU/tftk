@@ -1,8 +1,9 @@
 use crate::unit::{Angle, Length};
 use anyhow::{bail, Result};
-use noisy_float::types::R64;
+use nalgebra as na;
+use noisy_float::types::{r64, R64};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
-use std::str::FromStr;
+use std::{f64::consts::PI, str::FromStr};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "format", rename_all = "kebab-case")]
@@ -15,6 +16,16 @@ pub enum Rotation {
 }
 
 impl Rotation {
+    pub fn normalize(&self) -> Self {
+        match self {
+            Rotation::Euler(rot) => rot.normalize().into(),
+            Rotation::Quaternion(rot) => rot.clone().into(),
+            Rotation::AxisAngle(rot) => rot.normalize().into(),
+            Rotation::RotationMatrix(rot) => rot.clone().into(),
+            Rotation::Rodrigues(rot) => rot.normalize().into(),
+        }
+    }
+
     pub fn into_degrees(self) -> Self {
         match self {
             Rotation::Euler(rot) => rot.into_degrees().into(),
@@ -34,6 +45,26 @@ impl Rotation {
             Rotation::Rodrigues(rot) => rot.into(),
         }
     }
+
+    pub fn into_euler_format(self) -> Self {
+        Euler::from(self).into()
+    }
+
+    pub fn into_axis_angle_format(self) -> Self {
+        AxisAngle::from(self).into()
+    }
+
+    pub fn into_quaternion_format(self) -> Self {
+        Quaternion::from(self).into()
+    }
+
+    pub fn into_rodrigues_format(self) -> Self {
+        Rodrigues::from(self).into()
+    }
+
+    pub fn into_rotation_matrix_format(self) -> Self {
+        RotationMatrix::from(self).into()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,6 +74,13 @@ pub struct Euler {
 }
 
 impl Euler {
+    pub fn normalize(&self) -> Self {
+        let quat: na::UnitQuaternion<f64> = self.clone().into();
+        let Euler { order, angles } = quat.into();
+        let angles: Vec<_> = angles.into_iter().map(|ang| ang.normalize()).collect();
+        Self { order, angles }
+    }
+
     pub fn into_degrees(self) -> Self {
         let Self { order, angles } = self;
         Self {
@@ -72,6 +110,14 @@ pub struct AxisAngle {
 }
 
 impl AxisAngle {
+    pub fn normalize(&self) -> Self {
+        let Self { axis, angle } = *self;
+        Self {
+            axis,
+            angle: angle.normalize(),
+        }
+    }
+
     pub fn into_degrees(self) -> Self {
         let Self { axis, angle } = self;
         Self {
@@ -97,6 +143,22 @@ pub struct RotationMatrix {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rodrigues {
     pub params: [R64; 3],
+}
+
+impl Rodrigues {
+    pub fn normalize(&self) -> Self {
+        let [r1, r2, r3] = self.params;
+        let vec = na::Vector3::new(r1.raw(), r2.raw(), r3.raw());
+
+        let orig_angle = vec.norm();
+        let new_angle = orig_angle.rem_euclid(PI * 2.0);
+
+        let vec = vec / orig_angle * new_angle;
+        let [r1, r2, r3] = vec.into();
+        Self {
+            params: [r64(r1), r64(r2), r64(r3)],
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
