@@ -26,6 +26,16 @@ impl Rotation {
         }
     }
 
+    pub fn inverse(&self) -> Self {
+        match self {
+            Rotation::Euler(rot) => rot.inverse().into(),
+            Rotation::Quaternion(rot) => rot.inverse().into(),
+            Rotation::AxisAngle(rot) => rot.inverse().into(),
+            Rotation::RotationMatrix(rot) => rot.inverse().into(),
+            Rotation::Rodrigues(rot) => rot.inverse().into(),
+        }
+    }
+
     pub fn into_degrees(self) -> Self {
         match self {
             Rotation::Euler(rot) => rot.into_degrees().into(),
@@ -81,6 +91,11 @@ impl Euler {
         Self { order, angles }
     }
 
+    pub fn inverse(&self) -> Self {
+        let quat: na::UnitQuaternion<f64> = self.clone().into();
+        quat.inverse().into()
+    }
+
     pub fn into_degrees(self) -> Self {
         let Self { order, angles } = self;
         Self {
@@ -103,6 +118,13 @@ pub struct Quaternion {
     pub ijkw: [R64; 4],
 }
 
+impl Quaternion {
+    pub fn inverse(&self) -> Self {
+        let quat: na::UnitQuaternion<f64> = self.clone().into();
+        quat.inverse().into()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AxisAngle {
     pub axis: [Length; 3],
@@ -116,6 +138,11 @@ impl AxisAngle {
             axis,
             angle: angle.normalize(),
         }
+    }
+
+    pub fn inverse(&self) -> Self {
+        let quat: na::UnitQuaternion<f64> = self.clone().into();
+        quat.inverse().into()
     }
 
     pub fn into_degrees(self) -> Self {
@@ -140,6 +167,13 @@ pub struct RotationMatrix {
     pub matrix: [[R64; 3]; 3],
 }
 
+impl RotationMatrix {
+    pub fn inverse(&self) -> Self {
+        let quat: na::UnitQuaternion<f64> = self.clone().into();
+        quat.inverse().into()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rodrigues {
     pub params: [R64; 3],
@@ -158,6 +192,11 @@ impl Rodrigues {
         Self {
             params: [r64(r1), r64(r2), r64(r3)],
         }
+    }
+
+    pub fn inverse(&self) -> Self {
+        let quat: na::UnitQuaternion<f64> = self.clone().into();
+        quat.inverse().into()
     }
 }
 

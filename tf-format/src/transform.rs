@@ -1,4 +1,4 @@
-use crate::Rotation;
+use crate::{AxisAngle, Euler, Quaternion, Rodrigues, Rotation, RotationMatrix};
 use nalgebra as na;
 use noisy_float::types::R64;
 use num::NumCast;
@@ -16,6 +16,27 @@ impl Transform {
         Self {
             r: r.normalize(),
             t: *t,
+        }
+    }
+
+    pub fn inverse(&self) -> Self {
+        let iso: na::Isometry3<f64> = self.clone().into();
+        let na::Isometry3 {
+            rotation: rot,
+            translation: trans,
+        } = iso.inverse();
+
+        let rot: Rotation = match self.r {
+            Rotation::Euler(_) => Euler::from(rot).into(),
+            Rotation::Quaternion(_) => Quaternion::from(rot).into(),
+            Rotation::AxisAngle(_) => AxisAngle::from(rot).into(),
+            Rotation::RotationMatrix(_) => RotationMatrix::from(rot).into(),
+            Rotation::Rodrigues(_) => Rodrigues::from(rot).into(),
+        };
+
+        Self {
+            r: rot,
+            t: trans.into(),
         }
     }
 
@@ -202,10 +223,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::Transform;
-    use super::Translation;
-    use crate::unit::AngleUnit;
-    use crate::{Angle, Euler, EulerAxis, EulerAxisOrder, Rotation};
+    use super::{Transform, Translation};
+    use crate::{unit::AngleUnit, Angle, Euler, EulerAxis, EulerAxisOrder, Rotation};
     use approx::assert_abs_diff_eq;
     use noisy_float::types::r64;
 
