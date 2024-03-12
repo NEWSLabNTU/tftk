@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["EulerAxis","Rotation"],"struct":["Angle","AxisAngle","CoordTransform","Euler","EulerAxisOrder","MaybeTransform","Quaternion","Rodrigues","RotationMatrix","Transform","TransformSet","Translation"],"type":["Length"]};
