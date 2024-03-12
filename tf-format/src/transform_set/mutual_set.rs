@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::error::InsertionError;
 use anyhow::Result;
 use approx::abs_diff_eq;
@@ -92,9 +94,24 @@ impl MutualSet {
         self.lookup.keys().map(|coord| coord.as_str())
     }
 
-    // pub fn contains_coord(&self, coord: &str) -> bool {
-    //     self.lookup.contains_key(coord)
-    // }
+    pub fn merge(mut self, other: Self) -> Result<Self, (Self, Self)> {
+        let common_coord = {
+            let lcoords: HashSet<_> = self.lookup.keys().collect();
+            let rcoords: HashSet<_> = other.lookup.keys().collect();
+
+            let Some(common_coord) = lcoords.intersection(&rcoords).next() else {
+                return Err((self, other));
+            };
+            common_coord.to_string()
+        };
+
+        for coord in other.lookup.keys() {
+            let tf = other.get(&common_coord, coord).unwrap();
+            self.insert(&common_coord, coord, tf).unwrap();
+        }
+
+        Ok(self)
+    }
 
     fn get_by_range(&self, start: usize, end: usize) -> Option<na::Isometry3<f64>> {
         let Self { lookup, .. } = self;
@@ -147,7 +164,6 @@ impl MutualSet {
             .enumerate()
             .map(|(idx, (base, _))| (idx, base))
             .collect();
-        eprintln!("{bases:?}");
 
         for (idx, (base1, list1)) in izip!(0.., lookup) {
             let max_pow = (0..).find(|pow| {
@@ -179,14 +195,4 @@ impl Default for MutualSet {
             lookup: IndexMap::new(),
         }
     }
-}
-
-pub fn merge(
-    lset: MutualSet,
-    rset: MutualSet,
-    src: &str,
-    dst: &str,
-    tf: na::Isometry3<f64>,
-) -> MutualSet {
-    todo!();
 }

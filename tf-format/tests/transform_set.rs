@@ -88,7 +88,7 @@ fn transfrom_set_serde() -> Result<()> {
 }
 
 #[test]
-fn transform_set_consistency_test() -> Result<()> {
+fn transform_set_consistency_test_1() -> Result<()> {
     let mut set = TransformSet::default();
 
     let map_to_car = make_iso3!(0f64, 10f64, 20f64; 100.0, -70.0, 255.0);
@@ -111,6 +111,51 @@ fn transform_set_consistency_test() -> Result<()> {
     set.insert("lidar1", "car", lidar1_to_car)?;
     set.insert("map", "car", map_to_car)?;
     set.insert("lidar2", "car", lidar2_to_car)?;
+
+    macro_rules! check {
+        ($src:expr, $dst:expr, $expect:expr) => {
+            assert_abs_diff_eq!(set.get($src, $dst).unwrap(), $expect, epsilon = 1e-6);
+        };
+    }
+
+    check!("car", "lidar1", car_to_lidar1);
+    check!("car", "lidar2", car_to_lidar2);
+    check!("car", "map", car_to_map);
+    check!("map", "car", map_to_car);
+    check!("map", "lidar1", map_to_lidar1);
+    check!("map", "lidar2", map_to_lidar2);
+    check!("lidar1", "car", lidar1_to_car);
+    check!("lidar1", "lidar2", lidar1_to_lidar2);
+    check!("lidar1", "map", lidar1_to_map);
+    check!("lidar2", "car", lidar2_to_car);
+    check!("lidar2", "lidar1", lidar2_to_lidar1);
+    check!("lidar2", "map", lidar2_to_map);
+
+    Ok(())
+}
+
+#[test]
+fn transform_set_consistency_test_2() -> Result<()> {
+    let mut set = TransformSet::default();
+
+    let map_to_car = make_iso3!(0f64, 10f64, 20f64; 100.0, -70.0, 255.0);
+    let car_to_lidar1 = make_iso3!(0f64, 0f64, 30f64; 10.0, 0.0, 3.0);
+    let car_to_lidar2 = make_iso3!(0f64, 0f64, -30f64; -10.0, 0.0, 3.0);
+
+    let car_to_map = map_to_car.inverse();
+    let lidar1_to_car = car_to_lidar1.inverse();
+    let lidar2_to_car = car_to_lidar2.inverse();
+    let lidar1_to_lidar2 = lidar1_to_car * car_to_lidar2;
+    let lidar2_to_lidar1 = lidar1_to_lidar2.inverse();
+    let map_to_lidar1 = map_to_car * car_to_lidar1;
+    let map_to_lidar2 = map_to_car * car_to_lidar2;
+    let lidar1_to_map = map_to_lidar1.inverse();
+    let lidar2_to_map = map_to_lidar2.inverse();
+
+    set.insert("car", "map", car_to_map)?;
+    set.insert("lidar1", "lidar2", lidar1_to_lidar2)?;
+    // This step merges two disjoint mutual sets.
+    set.insert("car", "lidar2", car_to_lidar2)?;
 
     macro_rules! check {
         ($src:expr, $dst:expr, $expect:expr) => {

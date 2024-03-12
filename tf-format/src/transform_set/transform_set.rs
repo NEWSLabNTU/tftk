@@ -1,10 +1,7 @@
-use super::{
-    error::InsertionError,
-    mutual_set::{self, MutualSet},
-    serialized::SerializedTransformSet,
-};
+use super::{error::InsertionError, mutual_set::MutualSet, serialized::SerializedTransformSet};
 use crate::{transform_set::topo_sort::TopologicalSort, CoordTransform};
 use approx::abs_diff_eq;
+use itertools::chain;
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, rc::Rc};
@@ -27,6 +24,10 @@ impl TransformSet {
         }
 
         self.mid_to_set[src_mid].get(src, dst)
+    }
+
+    pub fn contains_coord(&self, coord: &str) -> bool {
+        self.coord_to_mid.contains_key(coord)
     }
 
     pub fn insert(
@@ -65,14 +66,16 @@ impl TransformSet {
                 if src_mid != dst_mid {
                     let new_mid = self.next_mid();
 
-                    let src_set = self.mid_to_set.remove(&src_mid).unwrap();
+                    let mut src_set = self.mid_to_set.remove(&src_mid).unwrap();
                     let dst_set = self.mid_to_set.remove(&dst_mid).unwrap();
 
-                    for coord in src_set.coord_iter() {
+                    for coord in chain!(src_set.coord_iter(), dst_set.coord_iter()) {
                         *self.coord_to_mid.get_mut(coord).unwrap() = new_mid;
                     }
 
-                    let new_set = mutual_set::merge(src_set, dst_set, src, dst, tf);
+                    src_set.insert(src, dst, tf).unwrap();
+
+                    let new_set = src_set.merge(dst_set).unwrap();
                     self.mid_to_set.insert(new_mid, new_set);
 
                     Ok(())
