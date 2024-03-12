@@ -52,10 +52,12 @@ impl TransformSet {
                 Ok(())
             }
             (None, Some(dst_mid)) => {
+                self.coord_to_mid.insert(src.to_string(), dst_mid);
                 let mutual_set = self.mid_to_set.get_mut(&dst_mid).unwrap();
                 mutual_set.insert(src, dst, tf)
             }
             (Some(src_mid), None) => {
+                self.coord_to_mid.insert(dst.to_string(), src_mid);
                 let mutual_set = self.mid_to_set.get_mut(&src_mid).unwrap();
                 mutual_set.insert(src, dst, tf)
             }
