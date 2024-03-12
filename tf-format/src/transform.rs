@@ -4,6 +4,7 @@ use noisy_float::types::R64;
 use num::NumCast;
 use serde::{Deserialize, Serialize};
 
+/// Represent a rigid transformation in 3D Euclidean space.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transform {
     pub r: Rotation,
@@ -97,6 +98,8 @@ impl Transform {
     }
 }
 
+/// Represent either a rigid transformation or a rotation in 3D
+/// Euclidean space.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(from = "SerializedTransform", into = "SerializedTransform")]
 pub struct MaybeTransform {
@@ -185,6 +188,7 @@ impl From<MaybeTransform> for SerializedTransform {
     }
 }
 
+/// Represent a translation in 3D Euclidean space.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[repr(transparent)]
 pub struct Translation(pub [R64; 3]);

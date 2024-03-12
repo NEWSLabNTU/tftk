@@ -12,6 +12,7 @@ use std::{
     rc::Rc,
 };
 
+/// Represent a set of related or disjoint coordinate transformations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(try_from = "SerializedTransformSet", into = "SerializedTransformSet")]
 pub struct TransformSet {

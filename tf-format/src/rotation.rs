@@ -5,6 +5,7 @@ use noisy_float::types::{r64, R64};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
 use std::{f64::consts::PI, str::FromStr};
 
+/// Generic rotation data type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "format", rename_all = "kebab-case")]
 pub enum Rotation {
@@ -77,6 +78,7 @@ impl Rotation {
     }
 }
 
+/// Rotation represented as Euler angles.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Euler {
     pub order: EulerAxisOrder,
@@ -113,6 +115,7 @@ impl Euler {
     }
 }
 
+/// Rotation represented as a quaternion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Quaternion {
     pub ijkw: [R64; 4],
@@ -125,6 +128,7 @@ impl Quaternion {
     }
 }
 
+/// Rotation represented in axis-angle format.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AxisAngle {
     pub axis: [Length; 3],
@@ -174,6 +178,7 @@ impl RotationMatrix {
     }
 }
 
+/// Rotation represented in Rodrigues format.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rodrigues {
     pub params: [R64; 3],
