@@ -1,0 +1,29 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build API Docs for tf-format
+        run: |
+          cargo doc --package tf-format --no-deps
+          mv target/doc tf-format-docs
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url='"'"'tf_format/index.html'"'"'" /></head><body></body></html>' > tf-format-docs/index.html
+      - name: Publish API doc for tf-format
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./tf-format-docs
+          publish_branch: tf-format-api-pages
