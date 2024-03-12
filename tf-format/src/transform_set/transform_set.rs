@@ -4,7 +4,13 @@ use approx::abs_diff_eq;
 use itertools::chain;
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::HashMap,
+    fs::{self, File},
+    io::BufReader,
+    path::Path,
+    rc::Rc,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(try_from = "SerializedTransformSet", into = "SerializedTransformSet")]
@@ -15,6 +21,10 @@ pub struct TransformSet {
 }
 
 impl TransformSet {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn get(&self, src: &str, dst: &str) -> Option<na::Isometry3<f64>> {
         let src_mid = self.coord_to_mid.get(src)?;
         let dst_mid = self.coord_to_mid.get(dst)?;
@@ -87,6 +97,10 @@ impl TransformSet {
         }
     }
 
+    pub fn merge(self, other: Self) -> Self {
+        todo!()
+    }
+
     pub fn try_from_iter<T>(iter: T) -> Result<Self, InsertionError>
     where
         T: IntoIterator<Item = CoordTransform>,
@@ -141,6 +155,44 @@ impl TransformSet {
             coord_to_mid,
             mid_to_set,
         })
+    }
+
+    pub fn from_json_file<P>(path: P) -> anyhow::Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        let reader = BufReader::new(File::open(path)?);
+        let set: TransformSet = serde_json::from_reader(reader)?;
+        Ok(set)
+    }
+
+    pub fn from_json_dir<P>(path: P) -> anyhow::Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        let mut merged_set = TransformSet::new();
+
+        for entry in fs::read_dir(path)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if !path.canonicalize()?.is_file() {
+                continue;
+            }
+
+            let Some(ext) = path.extension() else {
+                continue;
+            };
+
+            if ext != "json" {
+                continue;
+            }
+
+            let curr_set = TransformSet::from_json_file(path)?;
+            merged_set = merged_set.merge(curr_set);
+        }
+
+        Ok(merged_set)
     }
 
     fn next_mid(&mut self) -> usize {
