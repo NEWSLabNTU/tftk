@@ -1,12 +1,14 @@
 use anyhow::Result;
 use approx::assert_abs_diff_eq;
+use itertools::izip;
 use nalgebra as na;
 use noisy_float::types::r64;
+use rand::prelude::*;
 use serde::Deserialize;
 use std::{fs::File, io::BufReader, path::Path};
 use tf_format::{
-    AxisAngle, Euler, EulerAxis, EulerAxisOrder, Quaternion, Rotation, RotationMatrix, Transform,
-    TransformSet, Translation,
+    Angle, AxisAngle, Euler, EulerAxis, EulerAxisOrder, Quaternion, Rotation, RotationMatrix,
+    Transform, Translation,
 };
 
 const CONFIG_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/example_config");
@@ -18,7 +20,7 @@ fn json_parsing() -> Result<()> {
     // euler
     {
         let rot: Rotation = load_json(config_dir.join("rot_euler.json"))?;
-        let Rotation::Euler(euler) = rot else {
+        let Rotation::Euler(euler) = &rot else {
             panic!();
         };
 
@@ -27,10 +29,10 @@ fn json_parsing() -> Result<()> {
             angles,
         } = euler;
 
-        let [r, p, y] = *angles else { panic!() };
+        let [r, p, y] = **angles else { panic!() };
 
         assert_eq!(
-            order,
+            *order,
             vec![EulerAxis::Roll, EulerAxis::Pitch, EulerAxis::Yaw]
         );
         assert_eq!(
@@ -41,6 +43,15 @@ fn json_parsing() -> Result<()> {
             ],
             [r64(10.0), r64(-5.0), r64(3.0)]
         );
+
+        {
+            let quat: na::UnitQuaternion<f64> = euler.clone().into();
+            let (r, p, y) = quat.euler_angles();
+
+            for (val, expect) in izip!([r, p, y], [10.0, -5.0, 3.0]) {
+                assert_abs_diff_eq!(val.to_degrees(), expect, epsilon = 1e-6);
+            }
+        }
     }
 
     // axis-angle
@@ -156,6 +167,29 @@ fn nalgebra_conversion() -> Result<()> {
             let iso2: na::Isometry3<f64> = tf2.into();
             assert_abs_diff_eq!(iso, iso2, epsilon = 1e-6);
         }
+    }
+
+    Ok(())
+}
+
+#[test]
+fn euler_nalgebra_conversion() -> Result<()> {
+    let mut rng = rand::thread_rng();
+
+    let r = Angle::from_radians(r64(rng.gen()));
+    let p = Angle::from_radians(r64(rng.gen()));
+    let y = Angle::from_radians(r64(rng.gen()));
+
+    let euler = Euler {
+        order: EulerAxisOrder(vec![EulerAxis::Roll, EulerAxis::Pitch, EulerAxis::Yaw]),
+        angles: vec![r, p, y],
+    };
+    let rot: Rotation = euler.into();
+    let quat: na::UnitQuaternion<f64> = rot.into();
+    let (rrad, prad, yrad) = quat.euler_angles();
+
+    for (val, expect) in izip!([r, p, y], [rrad, prad, yrad]) {
+        assert_abs_diff_eq!(val.as_radians_value().raw(), expect);
     }
 
     Ok(())

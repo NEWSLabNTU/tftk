@@ -148,11 +148,13 @@ where
     T: na::RealField + NumCast,
 {
     fn from(euler: Euler) -> Self {
-        let Euler { order, angles } = euler;
-        assert_eq!(order.0.len(), angles.len());
+        let Euler {
+            order: EulerAxisOrder(order),
+            angles,
+        } = euler;
+        assert_eq!(order.len(), angles.len());
 
         order
-            .0
             .into_iter()
             .zip(angles)
             .map(|(axis, angle)| {
